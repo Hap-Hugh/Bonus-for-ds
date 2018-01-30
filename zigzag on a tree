@@ -1,0 +1,110 @@
+#include<stdio.h>
+#include<stdlib.h>
+
+#define MAXNUM 100000
+int postorder[MAXNUM];
+int inorder[MAXNUM]; 
+int level_num[100];
+int count = 0;
+int result[MAXNUM];
+
+typedef struct node* PNode;
+typedef struct node{
+	int Element;
+	PNode Left;
+	PNode Right;
+}Node;
+
+PNode Buildtree(int in_left, int in_right, int post_left, int post_right,int level)
+{
+    PNode root = (PNode)malloc(sizeof (Node));
+    int p;
+	if(in_left > in_right){
+    	return NULL;
+    } else {
+    	root->Element = postorder[post_right];
+		level_num[level]++;
+		//printf("%d  ",level_num[level]  );
+    	for (p = in_left; p <= in_right; p++)//p找到了根节点在inorder的位置 
+    	{
+    		if (root->Element == inorder[p])
+    			break;
+    	}
+    	root->Left = Buildtree(in_left, p-1, post_left, post_left + p - in_left -1, level+1);
+		root->Right =  Buildtree(p+1, in_right, post_left + p - in_left, post_right-1, level+1);
+		return root;
+	}	
+}
+
+
+void Level_order(PNode T)
+{
+	PNode order[MAXNUM];
+	int front = 1;//记录当前节点
+	int rear = 1;//记录当前儿子最后一个节点
+	if(T != NULL){
+		order[rear] = T;
+		rear++;
+		while(rear > front){
+			if(order[front]->Left != NULL)
+			{
+				order[rear++] = order[front]->Left;
+			}
+			if(order[front]->Right != NULL)
+			{
+				order[rear++] = order[front]->Right;
+			}	
+			result[count++] = order[front]->Element;
+			front++;
+		}
+	}
+	else return;
+}
+
+int main()
+{
+	int n;
+	int i,j;
+	scanf("%d",&n);
+	for (i = 0; i < n; i++)
+	{
+		scanf("%d",&inorder[i]);
+	}
+	for (i = 0; i < n; i++)
+	{
+		scanf("%d", &postorder[i]);
+	}
+	for (i = 0; i < n; i++)
+	{
+		level_num[i] = 0;
+	}
+	PNode root = Buildtree(0, n-1, 0, n-1, 0);
+	Level_order(root);
+	
+	int counter = 0;
+	for (i = 0; level_num[i] != 0; i++)
+	{
+		if (i%2==1){
+			int father = 0;
+			for (j = 0; j < level_num[i]; j++){
+				if (counter + j == 0)
+					printf("%d",result[counter+j]);
+				else
+					printf(" %d",result[counter+j]);
+				father++;
+			}
+			counter += father;
+		} else {
+			int mother = 0;
+			for (j = level_num[i]-1; j >= 0; j--){
+				if (counter + j == 0)
+					printf("%d",result[counter+j]);
+				else
+					printf(" %d",result[counter+j]);
+				mother++;
+			}
+			counter += mother;
+		}
+	}	
+	return 0;
+}
